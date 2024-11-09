@@ -62,7 +62,7 @@ func (j *JobLoader) doJobs() error {
 	if err != nil {
 		return err
 	}
-	logrus.Infof("Creating jobs for %d nodes", nodeCount)
+	logrus.Infof("Creating %d jobs each for %d nodes", j.JobsPerNode, nodeCount)
 
 	go j.createReplacementJobs()
 
@@ -84,7 +84,7 @@ func (j *JobLoader) createJob() {
 		},
 		Spec: batchv1.JobSpec{
 			Parallelism:             pointer.Int32(1),
-			TTLSecondsAfterFinished: pointer.Int32(10),
+			TTLSecondsAfterFinished: pointer.Int32(5),
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
@@ -129,7 +129,11 @@ func (j *JobLoader) createJob() {
 			},
 		},
 	}
-	j.client.BatchV1().Jobs(j.Namespace).Create(j.ctx, job, metav1.CreateOptions{})
+	if job, err := j.client.BatchV1().Jobs(j.Namespace).Create(j.ctx, job, metav1.CreateOptions{}); err != nil {
+		logrus.Errorf("Failed to create Job: %v", err)
+	} else {
+		logrus.Errorf("Created Job: %s", job.Name)
+	}
 }
 
 func (j *JobLoader) createReplacementJobs() {
@@ -154,7 +158,7 @@ func (j *JobLoader) createReplacementJobs() {
 				continue
 			}
 			if ev.Type == watch.Deleted {
-				logrus.Infof("Deleted job: %s", job.Name)
+				logrus.Infof("Deleted Job: %s", job.Name)
 				j.createJob()
 			}
 		}
