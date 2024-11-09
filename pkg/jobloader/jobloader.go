@@ -3,6 +3,7 @@ package jobloader
 import (
 	"context"
 
+	"github.com/brandond/jobloader/pkg/ratelimit"
 	"github.com/brandond/jobloader/pkg/signals"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -43,6 +44,7 @@ func (j *JobLoader) Run(_ *cli.Context) error {
 		return err
 	}
 
+	cfg.RateLimiter = ratelimit.None
 	j.client, err = kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return err
@@ -132,7 +134,7 @@ func (j *JobLoader) createJob() {
 	if job, err := j.client.BatchV1().Jobs(j.Namespace).Create(j.ctx, job, metav1.CreateOptions{}); err != nil {
 		logrus.Errorf("Failed to create Job: %v", err)
 	} else {
-		logrus.Errorf("Created Job: %s", job.Name)
+		logrus.Infof("Created Job: %s", job.Name)
 	}
 }
 
