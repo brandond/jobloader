@@ -86,8 +86,14 @@ func (j *JobLoader) createJob() {
 			Parallelism:             pointer.Int32(1),
 			TTLSecondsAfterFinished: pointer.Int32(10),
 			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						labelJobLoader: "true",
+					},
+				},
 				Spec: v1.PodSpec{
 					RestartPolicy:                v1.RestartPolicyNever,
+					EnableServiceLinks:           pointer.Bool(false),
 					AutomountServiceAccountToken: pointer.Bool(false),
 					Containers: []v1.Container{
 						{
