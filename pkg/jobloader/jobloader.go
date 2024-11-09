@@ -2,6 +2,8 @@ package jobloader
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/brandond/jobloader/pkg/ratelimit"
 	"github.com/brandond/jobloader/pkg/signals"
@@ -134,7 +136,7 @@ func (j *JobLoader) createJob() {
 	if job, err := j.client.BatchV1().Jobs(j.Namespace).Create(j.ctx, job, metav1.CreateOptions{}); err != nil {
 		logrus.Errorf("Failed to create Job: %v", err)
 	} else {
-		logrus.Infof("Created Job: %s", job.Name)
+		logrus.Info("Created Job: " + job.Name)
 	}
 }
 
@@ -156,11 +158,15 @@ func (j *JobLoader) createReplacementJobs() {
 		case ev, ok := <-watcher.ResultChan():
 			job, ok := ev.Object.(*batchv1.Job)
 			if !ok {
-				logrus.Errorf("Watch error: event object not of type batchv1.Job")
+				logrus.Error("Watch error: event object not of type batchv1.Job")
 				continue
 			}
 			if ev.Type == watch.Deleted {
-				logrus.Infof("Deleted Job: %s", job.Name)
+				var lifetime string
+				if job.DeletionTimestamp != nil {
+					lifetime = fmt.Sprintf(" (%s)", job.DeletionTimestamp.Time.Sub(job.CreationTimestamp.Time).Round(time.Second))
+				}
+				logrus.Info("Deleted Job: " + job.Name + lifetime)
 				j.createJob()
 			}
 		}
