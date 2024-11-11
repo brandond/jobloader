@@ -24,9 +24,7 @@ jobs:
           go-version: 'stable'
       
       - name: Test
-        run: go build -o bin/jobloader \
-          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.ref_name }} \
-          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.sha }}
+        run: go test -v
 
       - name: Build
         run: go build -o bin/jobloader-${{ matrix.os }}-${{ matrix.arg }} \
