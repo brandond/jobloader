@@ -1,0 +1,37 @@
+name: Build
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      
+      - name: Test
+        run: go build -o bin/jobloader \
+          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.ref_name }} \
+          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.sha }}
+
+      - name: Build
+        run: go build -o bin/jobloader-${{ matrix.os }}-${{ matrix.arg }} \
+          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.ref_name }} \
+          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.sha }}
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}

@@ -1,0 +1,39 @@
+name: Publish
+on:
+  release:
+    types:
+      - published
+permissions:
+    contents: write
+    id-token: write
+jobs:
+  publish:
+    strategy:
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Build
+        run: go build -o bin/jobloader-${{ matrix.os }}-${{ matrix.arg }} \
+          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.ref_name }} \
+          -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.sha }}
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+
+      - name: Upload Release Assets
+        run: gh release upload ${{ github.ref_name }} bin/*
+        env:
+          GH_TOKEN: ${{ github.token }}
