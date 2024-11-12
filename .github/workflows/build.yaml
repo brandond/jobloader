@@ -28,7 +28,7 @@ jobs:
 
       - name: Build
         run: go build -o bin/jobloader-${{ matrix.os }}-${{ matrix.arch }} -ldflags \
-          "-X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.ref_name }} -X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.sha }}"
+          "-X github.com/brandond/jobloader/pkg/version/GitVersion=${{ github.ref_type == 'tag' && github.ref_name || 'dev' }} -X github.com/brandond/jobloader/pkg/version/GitCommit=${{ github.sha }}"
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
