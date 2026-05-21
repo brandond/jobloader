@@ -23,7 +23,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version-file: 'go.mod'
 
       - name: Build
         run: go build -o bin/jobloader-${{ matrix.os }}-${{ matrix.arch }} -ldflags \
